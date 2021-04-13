@@ -255,8 +255,10 @@ public class SpringApplication {
 
 	/**
 	 * Create a new {@link SpringApplication} instance. The application context will load
+	 * 创建一个实例。程序上下文能够从特殊的资源文档中获取对象
 	 * beans from the specified primary sources (see {@link SpringApplication class-level}
 	 * documentation for details. The instance can be customized before calling
+	 * 这个实例是为了调用它的run方法
 	 * {@link #run(String...)}.
 	 * @param resourceLoader the resource loader to use
 	 * @param primarySources the primary bean sources
@@ -268,9 +270,11 @@ public class SpringApplication {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		//如果是web的话，判断类型
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+		//通过异常堆栈来推测出main函数
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
 
@@ -305,7 +309,7 @@ public class SpringApplication {
 		listeners.starting();
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
-			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);//标准。servlet环境，reactive环境
 			configureIgnoreBeanInfo(environment);
 			Banner printedBanner = printBanner(environment);
 			context = createApplicationContext();
@@ -422,7 +426,7 @@ public class SpringApplication {
 
 	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type, Class<?>[] parameterTypes, Object... args) {
 		ClassLoader classLoader = getClassLoader();
-		// Use names and ensure unique to protect against duplicates
+		// Use names and ensure unique to protect against duplicates //用名称set来保证唯一，spring 5.3 之后会去重复
 		Set<String> names = new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(type, classLoader));
 		List<T> instances = createSpringFactoriesInstances(type, parameterTypes, classLoader, args, names);
 		AnnotationAwareOrderComparator.sort(instances);
@@ -466,15 +470,17 @@ public class SpringApplication {
 	 * Template method delegating to
 	 * {@link #configurePropertySources(ConfigurableEnvironment, String[])} and
 	 * {@link #configureProfiles(ConfigurableEnvironment, String[])} in that order.
+	 * 用于顺序执行 configurePropertySources 和 configureProfiles 的模板方法
 	 * Override this method for complete control over Environment customization, or one of
 	 * the above for fine-grained control over property sources or profiles, respectively.
+	 * 复写此方法是为了对环境完成自定义控制，或上述方法之一，分别用于对属性源或配置文件的细粒度控制
 	 * @param environment this application's environment
 	 * @param args arguments passed to the {@code run} method
 	 * @see #configureProfiles(ConfigurableEnvironment, String[])
 	 * @see #configurePropertySources(ConfigurableEnvironment, String[])
 	 */
 	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
-		if (this.addConversionService) {
+		if (this.addConversionService) {//添加程序默认的转换函数，默认是要添加的
 			ConversionService conversionService = ApplicationConversionService.getSharedInstance();
 			environment.setConversionService((ConfigurableConversionService) conversionService);
 		}
@@ -485,6 +491,8 @@ public class SpringApplication {
 	/**
 	 * Add, remove or re-order any {@link PropertySource}s in this application's
 	 * environment.
+	 * 添加 defaultProperties 如果有的话
+	 *
 	 * @param environment this application's environment
 	 * @param args arguments passed to the {@code run} method
 	 * @see #configureEnvironment(ConfigurableEnvironment, String[])
@@ -496,7 +504,7 @@ public class SpringApplication {
 		}
 		if (this.addCommandLineProperties && args.length > 0) {
 			String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
-			if (sources.contains(name)) {
+			if (sources.contains(name)) {//将原来的参数和现在的参数都拼接在一起然后替换掉
 				PropertySource<?> source = sources.get(name);
 				CompositePropertySource composite = new CompositePropertySource(name);
 				composite.addPropertySource(

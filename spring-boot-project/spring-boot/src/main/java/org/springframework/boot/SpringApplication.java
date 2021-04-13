@@ -344,7 +344,7 @@ public class SpringApplication {
 			ApplicationArguments applicationArguments) {
 		// Create and configure the environment
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
-		configureEnvironment(environment, applicationArguments.getSourceArgs());
+		configureEnvironment(environment, applicationArguments.getSourceArgs());//配置soruce 和 activeProfile
 		ConfigurationPropertySources.attach(environment);
 		listeners.environmentPrepared(environment);
 		bindToSpringApplication(environment);

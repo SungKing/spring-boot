@@ -310,12 +310,12 @@ public class SpringApplication {
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);//标准。servlet环境，reactive环境
-			configureIgnoreBeanInfo(environment);
+			configureIgnoreBeanInfo(environment);//在系统变量中配置 spring.beaninfo.ignore
 			Banner printedBanner = printBanner(environment);
-			context = createApplicationContext();
+			context = createApplicationContext();//创建上下文对象
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
-			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+			prepareContext(context, environment, listeners, applicationArguments, printedBanner);//环境准备，bean定义读取
 			refreshContext(context);
 			afterRefresh(context, applicationArguments);
 			stopWatch.stop();
@@ -345,14 +345,14 @@ public class SpringApplication {
 		// Create and configure the environment
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
 		configureEnvironment(environment, applicationArguments.getSourceArgs());//配置soruce 和 activeProfile
-		ConfigurationPropertySources.attach(environment);
-		listeners.environmentPrepared(environment);
+		ConfigurationPropertySources.attach(environment);//刷新一下 configurationProperties
+		listeners.environmentPrepared(environment);//通知监听器环境准备完毕
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {
 			environment = new EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment,
 					deduceEnvironmentClass());
 		}
-		ConfigurationPropertySources.attach(environment);
+		ConfigurationPropertySources.attach(environment);//重新刷新
 		return environment;
 	}
 
@@ -570,6 +570,10 @@ public class SpringApplication {
 	 * Strategy method used to create the {@link ApplicationContext}. By default this
 	 * method will respect any explicitly set application context or application context
 	 * class before falling back to a suitable default.
+	 * 用来创建 ApplicationContext 的具有战略意义的方法。
+	 * 默认情况下，此方法在返回到合适的默认值之前，将尊重任何显式设置的应用程序上下文或应用程序上下文类。（这意思是先判断
+	 * 这个类是否先前已设置）
+	 *
 	 * @return the application context (not yet refreshed)
 	 * @see #setApplicationContextClass(Class)
 	 */
